@@ -34,3 +34,14 @@ async def receive_webhook(request: Request):
     data = await request.json()
     print("Webhook recibido:", data)
     return {"status": "ok"}
+@app.get("/debug-webhook")
+async def debug_webhook(request: Request):
+    token_received = request.query_params.get("hub.verify_token", "")
+    return {
+        "mode": request.query_params.get("hub.mode"),
+        "challenge": request.query_params.get("hub.challenge"),
+        "token_received": bool(token_received),
+        "token_received_length": len(token_received),
+        "token_expected_length": len(VERIFY_TOKEN),
+        "tokens_match": token_received == VERIFY_TOKEN
+    }
