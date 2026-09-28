@@ -24,6 +24,12 @@ async def verify_webhook(request: Request):
 
 
 @app.post("/webhook")
+@app.get("/debug")
+def debug():
+    return {
+        "verify_token_loaded": bool(VERIFY_TOKEN),
+        "verify_token_length": len(VERIFY_TOKEN)
+    }
 async def receive_webhook(request: Request):
     data = await request.json()
     print("Webhook recibido:", data)
