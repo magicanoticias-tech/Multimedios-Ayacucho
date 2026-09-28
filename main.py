@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, HTTPException
 
 app = FastAPI()
 
@@ -12,23 +12,19 @@ def home():
 
 
 @app.get("/webhook")
-def verify_webhook(
-    hub_mode: str = None,
-    hub_verify_token: str = None,
-    hub_challenge: str = None,
-):
-    if hub_mode == "subscribe" and hub_verify_token == VERIFY_TOKEN:
-        return Response(content=hub_challenge or "", media_type="text/plain")
+async def verify_webhook(request: Request):
+    mode = request.query_params.get("hub.mode")
+    token = request.query_params.get("hub.verify_token")
+    challenge = request.query_params.get("hub.challenge")
 
-    return Response(content="Verification failed", status_code=403)
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return Response(content=challenge or "", media_type="text/plain")
+
+    raise HTTPException(status_code=403, detail="Verification failed")
 
 
 @app.post("/webhook")
 async def receive_webhook(request: Request):
     data = await request.json()
-
-    # Por ahora confirmamos la recepción.
-    # En el próximo paso procesaremos mensajes, fotos y comandos.
-    print("WhatsApp webhook:", data)
-
+    print("Webhook recibido:", data)
     return {"status": "ok"}
